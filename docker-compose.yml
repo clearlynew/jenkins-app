@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  database:
+    image: mysql:8
+    container_name: db_himap_bcs86
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: librarydb
+    volumes:
+      - library_db_volume:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  backend:
+    image: library-backend
+    container_name: backend_himap_bcs86
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+
+  frontend:
+    image: library-frontend
+    container_name: frontend_himap_bcs86
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  library_db_volume:

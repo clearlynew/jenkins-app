@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library App</title>
+</head>
+<body>
+
+<h2>Library Book Borrow & Sell</h2>
+
+<h3>Add Book</h3>
+<input id="title" placeholder="Title" required>
+<input id="author" placeholder="Author" required>
+<input id="price" type="number" placeholder="Price" required>
+<button type="button" onclick="addBook()">Add</button>
+
+<h3>Books</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Borrowed By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="bookTable"></tbody>
+</table>
+
+<script>
+const API = "http://localhost:5000";
+
+function loadBooks() {
+    fetch(API + "/books")
+        .then(res => res.json())
+        .then(data => {
+            const table = document.getElementById("bookTable");
+            table.innerHTML = "";
+            data.forEach(book => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>${book.price}</td>
+                        <td>${book.status}</td>
+                        <td>${book.borrowed_by || "-"}</td>
+                        <td>
+                            ${book.status === "Available"
+                                ? `<button type="button" onclick="borrowBook(${book.id})">Take</button>`
+                                : ""}
+                            <button type="button" onclick="sellBook(${book.id})">Sell</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+}
+
+function addBook() {
+    fetch(API + "/books", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            title: document.getElementById("title").value,
+            author: document.getElementById("author").value,
+            price: document.getElementById("price").value
+        })
+    }).then(() => loadBooks());
+}
+
+function borrowBook(id) {
+    const name = prompt("Borrower name:");
+    fetch(API + "/books/" + id, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ borrowed_by: name })
+    }).then(() => loadBooks());
+}
+
+function sellBook(id) {
+    fetch(API + "/books/" + id, { method: "DELETE" })
+        .then(() => loadBooks());
+}
+
+loadBooks();
+</script>
+
+</body>
+</html>
